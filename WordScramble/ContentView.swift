@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var usedWords = [String]()
     @State private var rootWord = ""
     @State private var newWord = ""
+    @State private var wordScore = 0
     
     @State private var errorTitle = ""
     @State private var errorMessage = ""
@@ -25,6 +26,8 @@ struct ContentView: View {
                         .autocapitalization(.none)
                 }
                 
+                Text("Score: \(wordScore)")
+                
                 Section {
                     ForEach(usedWords, id: \.self) { word in
                         HStack {
@@ -33,8 +36,12 @@ struct ContentView: View {
                         }
                     }
                 }
+                
             }
             .navigationTitle(rootWord)
+            .toolbar {
+                Button("New Game", action: startGame)
+            }
             .onSubmit(addNewWord)
             .onAppear(perform: startGame)
             .alert(errorTitle, isPresented: $showingError) {
@@ -47,10 +54,16 @@ struct ContentView: View {
     
     func addNewWord() {
         let answer = newWord.lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+        wordScore += answer.count
         guard answer.count > 0 else { return }
         
         guard isOriginal(word: answer) else {
             wordError(title: "Word used already", message: "Be more original!")
+            return
+        }
+        
+        guard isLong(word: answer) else {
+            wordError(title: "Too short", message: "You can do better than that!")
             return
         }
         
@@ -71,6 +84,11 @@ struct ContentView: View {
     }
     
     func startGame() {
+        
+        newWord = ""
+        usedWords.removeAll()
+        wordScore = 0
+        
         if let startWordsURL = Bundle.main.url(forResource: "start", withExtension: "txt") {
             if let startWords = try? String(contentsOf: startWordsURL) {
                 let allWords = startWords.components(separatedBy: "\n")
@@ -83,7 +101,7 @@ struct ContentView: View {
     }
     
     func isOriginal(word: String) -> Bool {
-        !usedWords.contains(word)
+        !usedWords.contains(word) && word != rootWord
     }
     
     func isPossible(word: String) -> Bool {
@@ -107,6 +125,10 @@ struct ContentView: View {
         
         // Word is real if there's no misspelling found
         return misspelledRange.location == NSNotFound
+    }
+    
+    func isLong(word: String) -> Bool {
+        word.count > 3
     }
     
     func wordError(title: String, message: String) {
