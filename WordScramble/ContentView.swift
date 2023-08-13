@@ -61,21 +61,25 @@ struct ContentView: View {
         
         guard isOriginal(word: answer) else {
             wordError(title: "Word used already", message: "Be more original!")
+            wordScore -= answer.count
             return
         }
         
         guard isLong(word: answer) else {
             wordError(title: "Too short", message: "You can do better than that!")
+            wordScore -= answer.count
             return
         }
         
         guard isPossible(word: answer) else {
             wordError(title: "Word not possible", message: "You can't spell that word from '\(rootWord)'")
+            wordScore -= answer.count
             return
         }
         
         guard isReal(word: answer) else {
             wordError(title: "Word not recognized", message: "You can't just make them up, you know!")
+            wordScore -= answer.count
             return
         }
         
